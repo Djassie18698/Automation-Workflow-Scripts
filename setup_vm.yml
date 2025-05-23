@@ -1,0 +1,21 @@
+---
+- name: Set up newly created VM
+  hosts: myhosts
+  become: true
+
+  tasks:
+    - name: Install git
+      package:
+        name: git
+        state: present
+
+    - name: Clone GitHub repo
+      git:
+        repo: https://github.com/Djassie18698/AnsibleTest
+        dest: /home/dean/ansible/github
+        update: yes
+
+    - name: Run Python script
+      command: python3 write_done.py
+      args:
+        chdir: /home/dean/ansible/github
