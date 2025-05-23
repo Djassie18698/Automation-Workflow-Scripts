@@ -1,5 +1,6 @@
 import requests, json, time, os
 from datetime import datetime, timezone
+from pathlib import Path
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -9,7 +10,7 @@ API_KEY = "5489d9fc169ae40148a2cfbf1644a130f891e37f964d34e60f22fb50c5272289"
 
 NAME_LOG_FILE = os.path.join(DATA_DIR, "last_workspace_names.txt")
 OUTPUT_LOG_FILE = os.path.join(DATA_DIR, "workspace_ip_lookup.json")
-INVENTORY_FILE = "/home/dean/ansible/inventory.ini"
+INVENTORY_FILE = Path(__file__).parent.resolve() / "inventory.ini"
 INVENTORY_GROUP = "myhosts"
 
 HEADERS = {

@@ -51,17 +51,32 @@ def log_workspace_name(name):
 
 def send_workspace_request():
     try:
-        with open(JSON_PAYLOAD_FILE, "r") as f:
-            payload = json.load(f)
-        name = generate_random_name()
-        payload["meta"]["host_name"] = name
-        payload["name"] = name
+        with open(JSON_PAYLOAD_FILE, "r") as json_file:
+            payload = json.load(json_file)
+
+        random_name = generate_random_name()
+        payload["meta"]["host_name"] = random_name
+        payload["name"] = random_name
+
         response = requests.post(API_URL, headers=HEADERS, json=payload)
-        print(f"🖥️  Sent workspace: {name}")
-        print("Response:", response.status_code, response.text)
-        log_workspace_name(name)
+
+        print(f"🖥️  Sent workspace: {random_name}")
+        print(f"Status Code: {response.status_code}")
+        print("Response:")
+        print(response.text)
+
+        log_workspace_name(random_name)
+
+        # ✅ New: if workspace is created, launch main.py
+        if response.status_code in [200, 201, 202]:
+            print("🚀 Launching main.py...")
+            subprocess.run(["python3", "main.py"])
+        else:
+            print("❌ Workspace creation failed. main.py not started.")
+
     except Exception as e:
-        print(f"❌ Error sending workspace: {e}")
+        print(f"❌ Error sending workspace request: {e}")
+
 
 def main():
     print("🔍 Monitoring GitHub... (Ctrl+C to stop)")
