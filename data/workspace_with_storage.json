@@ -1,6 +1,7 @@
 {
   "co_id": "d144baec-29dd-4fc0-9021-5b18a9eb60ba",
   "wallet_id": "5dd87e1f-c93e-42ca-8c00-bedb5e8397fc",
+  "co_passwordless_sudo": true,
   "description": "this is a test workspace created by automation",
   "name": "surftest",
   "meta": {
