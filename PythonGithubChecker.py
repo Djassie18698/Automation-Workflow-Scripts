@@ -1,4 +1,5 @@
 import requests, json, time, os, random, string
+import subprocess
 
 # === CONFIGURATION ===
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
