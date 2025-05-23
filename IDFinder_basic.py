@@ -1,13 +1,14 @@
-import requests
-import json
-import time
+import requests, json, time, os
 from datetime import datetime, timezone
-import os
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+os.makedirs(DATA_DIR, exist_ok=True)
 
 API_URL = "https://gw.live.surfresearchcloud.nl/v1/workspace/workspaces/"
 API_KEY = "5489d9fc169ae40148a2cfbf1644a130f891e37f964d34e60f22fb50c5272289"
-NAME_LOG_FILE = "last_workspace_names.txt"
-OUTPUT_LOG_FILE = "workspace_ip_lookup.json"
+
+NAME_LOG_FILE = os.path.join(DATA_DIR, "last_workspace_names.txt")
+OUTPUT_LOG_FILE = os.path.join(DATA_DIR, "workspace_ip_lookup.json")
 INVENTORY_FILE = "/home/dean/ansible/inventory.ini"
 INVENTORY_GROUP = "myhosts"
 
@@ -21,7 +22,7 @@ def get_last_workspace_name():
         with open(NAME_LOG_FILE, "r") as f:
             return f.readline().strip()
     except:
-        print("Failed to read workspace name file.")
+        print("Failed to read workspace name.")
         return None
 
 def find_workspace_info(name):
@@ -40,7 +41,7 @@ def find_workspace_info(name):
                 }
         return None
     except:
-        print("Error while requesting workspace info.")
+        print("Error finding workspace.")
         return None
 
 def get_ip_by_id(workspace_id, max_retries=30, delay=20):
@@ -51,7 +52,7 @@ def get_ip_by_id(workspace_id, max_retries=30, delay=20):
             ip = r.json().get("resource_meta", {}).get("ip", "")
             if ip:
                 return ip
-            print(f"Retrying... ({i+1}/{max_retries})")
+            print(f"Waiting for IP... ({i+1})")
             time.sleep(delay)
         except:
             print("Failed to fetch IP. Retrying...")
@@ -59,21 +60,22 @@ def get_ip_by_id(workspace_id, max_retries=30, delay=20):
     return ""
 
 def append_ip_to_inventory(ip):
+    ssh_user = os.environ.get("ANSIBLE_SSH_USER", "dean")
+    line = f"{ip} ansible_user={ssh_user} ansible_ssh_private_key_file=~/.ssh/surfspotkey"
+
     if os.path.exists(INVENTORY_FILE):
         with open(INVENTORY_FILE, "r") as f:
-            lines = f.read()
-            if ip in lines:
-                print(f"IP {ip} already in inventory.")
+            if line in f.read():
+                print(f"Entry already in inventory: {line}")
                 return
 
-    if not os.path.exists(INVENTORY_FILE):
-        with open(INVENTORY_FILE, "w") as f:
-            f.write(f"[{INVENTORY_GROUP}]\n{ip}\n")
-    else:
-        with open(INVENTORY_FILE, "a") as f:
-            f.write(f"{ip}\n")
+    with open(INVENTORY_FILE, "a" if os.path.exists(INVENTORY_FILE) else "w") as f:
+        if os.path.getsize(INVENTORY_FILE) == 0:
+            f.write(f"[{INVENTORY_GROUP}]\n")
+        f.write(f"{line}\n")
 
-    print(f"IP {ip} added to inventory.ini")
+    print(f"📋 Inventory updated: {line}")
+
 
 def save_result(data):
     with open(OUTPUT_LOG_FILE, "w") as f:
@@ -82,19 +84,16 @@ def save_result(data):
 if __name__ == "__main__":
     name = get_last_workspace_name()
     if not name:
-        print("No workspace name found.")
+        print("No workspace name.")
         exit()
-
     info = find_workspace_info(name)
     if not info:
         print("Workspace not found.")
         exit()
-
     ip = get_ip_by_id(info["id"])
     if not ip:
-        print("No IP assigned.")
+        print("No IP found.")
         exit()
-
     data = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "name": info["name"],
@@ -104,8 +103,6 @@ if __name__ == "__main__":
         "fqdn": info["fqdn"],
         "ip": ip
     }
-
     save_result(data)
     append_ip_to_inventory(ip)
-
     print("Done.")
