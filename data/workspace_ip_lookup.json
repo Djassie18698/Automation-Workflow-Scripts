@@ -1,9 +1,9 @@
 {
   "timestamp": "2025-05-23T12:57:13.151840+00:00",
-  "name": "surftest-aa654",
-  "workspace_id": "84d7ed99-eca6-4516-b403-39acfc621e9c",
+  "name": "ansibleslave",
+  "workspace_id": "2af4b306-d958-4288-85bf-0e2c3537e6bb",
   "status": "creating",
   "created": "2025-05-23T12:53:53.778574Z",
   "fqdn": "surftest-aa654.src-aco-consult.src.surf-hosted.nl",
-  "ip": "Not yet assigned"
+  "ip": "145.38.187.192"
 }
